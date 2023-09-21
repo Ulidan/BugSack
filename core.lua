@@ -39,12 +39,27 @@ media:Register("sound", "BugSack: Fatality", "Interface\\AddOns\\"..addonName.."
 -----------------------------------------------------------------------
 -- Utility
 --
+local excluded
+do
+	local exclusions = {
+		["ADDON_ACTION_FORBIDDEN"] = {addon="unitscan",fName="TargetUnit()"}
+	}
+	function excluded(message)
+		if message then
+			local e,addon,fName = message:match("^%[(..-)%] AddOn '(..-)' tried to call the protected function '(..-)'")
+			if exclusions[e] and exclusions[e].addon and exclusions[e].addon == addon and exclusions[e].fName and exclusions[e].fName == fName then
+				return true
+			end
+		end
+		return false
+	end
+end
 
 local onError
 do
 	local lastError = nil
-	function onError()
-		if not lastError or GetTime() > (lastError + 2) then
+	function onError(_, eObj)
+		if (not lastError or GetTime() > (lastError + 2)) and not excluded(eObj.message) then
 			if not addon.db.mute then
 				local sound = media:Fetch("sound", addon.db.soundMedia)
 				if addon.db.useMaster then
