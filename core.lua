@@ -42,12 +42,19 @@ media:Register("sound", "BugSack: Fatality", "Interface\\AddOns\\"..addonName.."
 local excluded
 do
 	local exclusions = {
-		["ADDON_ACTION_FORBIDDEN"] = {addon="unitscan",fName="TargetUnit()"}
+		ADDON_ACTION_FORBIDDEN = {
+			unitscan = {
+				["TargetUnit()"] = true,
+			},
+--			addon = {
+--				["function"] = true,
+--			},
+		},
 	}
 	function excluded(message)
 		if message then
 			local e,addon,fName = message:match("^%[(..-)%] AddOn '(..-)' tried to call the protected function '(..-)'")
-			if exclusions[e] and exclusions[e].addon and exclusions[e].addon == addon and exclusions[e].fName and exclusions[e].fName == fName then
+			if exclusions[e] and exclusions[e][addon] and exclusions[e][addon][fName] then
 				return true
 			end
 		end
